@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://firebase.google.com 'unsafe-inline'; object-src 'none';">
+  <title>Pride Welfare Society</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    input, button, select {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .edit-button {
+      background-color: #28a745;
+      margin: 5px;
+    }
+    .edit-button:hover {
+      background-color: #218838;
+    }
+    .delete-button {
+      background-color: #dc3545;
+      margin: 5px;
+    }
+    .delete-button:hover {
+      background-color: #c82333;
+    }
+    #userInfo, #receiptSection, #memberReceipts, #oldBalanceSection, #bankSection, #expensesSection, #editReceiptSection, #createdReceipts, #editBalanceSection, #editBankSection, #editExpenseSection, #societyDashboard, #memberDashboard, #cashTransactionsSection {
+      margin-top: 20px;
+      display: none;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .dashboard-box {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .dashboard-box h4 {
+      margin: 0 0 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    .dashboard-box p {
+      margin: 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+    .receipt-list, .member-list, .receipt-table-container, .bank-table-container, .expense-table-container, .cash-table-container {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+    }
+    .expense-table, .receipt-table, .bank-table, .cash-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .expense-table th, .expense-table td, .receipt-table th, .receipt-table td, .bank-table th, .bank-table td, .cash-table th, .cash-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .expense-table th, .receipt-table th, .bank-table th, .cash-table th {
+      background-color: #f2f2f2;
+      cursor: pointer;
+    }
+    .expense-table th:hover, .receipt-table th:hover, .bank-table th:hover, .cash-table th:hover {
+      background-color: #e0e0e0;
+    }
+    .receipt, .bank-entry, .expense, .member {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+    #memberSearch {
+      margin-bottom: 10px;
+    }
+    #loginSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin: 50px auto;
+    }
+    #loginSection h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #007bff;
+    }
+    #loginSection input {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    #loginSection input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    }
+    #loginSection button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 5px;
+      width: 50%;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      input, button, select {
+        padding: 8px;
+        font-size: 14px;
+      }
+      h3 {
+        font-size: 18px;
+      }
+      .dashboard-box h4 {
+        font-size: 12px;
+      }
+      .dashboard-box p {
+        font-size: 14px;
+      }
+      .receipt, .bank-entry, .expense, .member {
+        font-size: 14px;
+      }
+      .expense-table th, .expense-table td, .receipt-table th, .receipt-table td, .bank-table th, .bank-table td, .cash-table th, .cash-table td {
+        font-size: 12px;
+        padding: 6px;
+      }
+      .receipt-table th:nth-child(1), .receipt-table td:nth-child(1) { width: 20%; }
+      .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { width: 20%; }
+      .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { width: 20%; }
+      .receipt-table th:nth-child(4), .receipt-table td:nth-child(4) { width: 15%; }
+      .receipt-table th:nth-child(5), .receipt-table td:nth-child(5) { width: 15%; }
+      .receipt-table th:nth-child(6), .receipt-table td:nth-child(6) { width: 10%; }
+      .bank-table th:nth-child(1), .bank-table td:nth-child(1) { width: 30%; }
+      .bank-table th:nth-child(2), .bank-table td:nth-child(2) { width: 40%; }
+      .bank-table th:nth-child(3), .bank-table td:nth-child(3) { width: 30%; }
+      .expense-table th:nth-child(1), .expense-table td:nth-child(1) { width: 20%; }
+      .expense-table th:nth-child(2), .expense-table td:nth-child(2) { width: 40%; }
+      .expense-table th:nth-child(3), .expense-table td:nth-child(3) { width: 20%; }
+      .expense-table th:nth-child(4), .expense-table td:nth-child(4) { width: 20%; }
+      .cash-table th:nth-child(1), .cash-table td:nth-child(1) { width: 30%; }
+      .cash-table th:nth-child(2), .cash-table td:nth-child(2) { width: 40%; }
+      .cash-table th:nth-child(3), .cash-table td:nth-child(3) { width: 30%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pride Welfare Society</h1>
+
+    <!-- Login Section -->
+    <div id="loginSection">
+      <h1>Login to Your Account</h1>
+      <input type="email" id="email" placeholder="Enter your email" required />
+      <input type="password" id="password" placeholder="Enter your password" required />
+      <button id="loginButton">Login</button>
+      <div id="loginError" class="error-message"></div>
+    </div>
+
+    <!-- User Info Section -->
+    <div id="userInfo">
+      <h2>Welcome, <span id="userName"></span>!</h2>
+      <p>Role: <span id="userRole"></span></p>
+      <button id="logoutButton">Logout</button>
+    </div>
+
+    <!-- Society Dashboard -->
+    <div id="societyDashboard">
+      <h3>Society Dashboard</h3>
+      <div class="dashboard-grid">
+        <div class="dashboard-box">
+          <h4>Bank Balance</h4>
+          <p id="totalBankBalance">0</p>
+        </div>
+        <div class="dashboard-box">
+          <h4>Cash in Hand</h4>
+          <p id="cashInHand">0</p>
+          <button onclick="toggleCashTable()" style="margin-top: 5px; padding: 5px;">View Cash Transactions</button>
+        </div>
+        <div class="dashboard-box">
+          <h4>Total Expenses</h4>
+          <p id="totalExpenses">0</p>
+          <button onclick="toggleExpenseTable()" style="margin-top: 5px; padding: 5px;">View Expenses</button>
+        </div>
+      </div>
+      <table id="expenseTable" class="expense-table">
+        <thead>
+          <tr>
+            <th onclick="sortExpenseTable(0)">Date</th>
+            <th>Particular</th>
+            <th>Amount</th>
+            <th>Mode of Payment</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTableBody"></tbody>
+      </table>
+      <div id="cashTransactionsSection">
+        <h3>Cash Transactions</h3>
+        <div id="cashList" class="cash-table-container">
+          <table class="cash-table">
+            <thead>
+              <tr>
+                <th onclick="sortCashTable(0)">Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cashTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Member Dashboard -->
+    <div id="memberDashboard">
+      <h3>Member Dashboard</h3>
+      <div class="dashboard-grid">
+        <div class="dashboard-box">
+          <h4>Your Balance</h4>
+          <p id="memberBalance">0</p>
+        </div>
+        <div class="dashboard-box">
+          <h4>Your Total Receipts</h4>
+          <p id="totalMemberReceipts">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Section for Treasurer and Caretaker -->
+    <div id="receiptSection">
+      <h3>Generate Receipt</h3>
+      <select id="receiptMemberId">
+        <option value="">Select Member</option>
+      </select>
+      <div id="receiptMemberError" class="error-message"></div>
+      <input type="number" id="receiptAmount" placeholder="Amount" />
+      <select id="receiptStatus">
+        <option value="temporary">Temporary</option>
+        <option value="final" id="finalReceiptOption">Final</option>
+      </select>
+      <input type="text" id="receiptNumber" placeholder="Receipt Number (for Final)" style="display: none;" />
+      <select id="paymentMode">
+        <option value="Cash">Cash</option>
+        <option value="Bank">Bank</option>
+      </select>
+      <select id="receiptBankId" style="display: none;">
+        <option value="">Select Bank</option>
+      </select>
+      <button id="createReceiptButton">Create Receipt</button>
+    </div>
+
+    <!-- Created Receipts Section for Treasurer and Caretaker -->
+    <div id="createdReceipts">
+      <h3>Created Receipts</h3>
+      <div id="createdReceiptList" class="receipt-table-container">
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th onclick="sortReceiptTable(0)">Date</th>
+              <th>Receipt No.</th>
+              <th>Member Name</th>
+              <th>Mode of Payment</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="createdReceiptTableBody"></tbody>
+        </table>
+      </div>
+      <div id="createdReceiptListError" class="error-message"></div>
+    </div>
+
+    <!-- Old Balance Section for Treasurer -->
+    <div id="oldBalanceSection">
+      <h3>Manage Old Balance</h3>
+      <button onclick="toggleMemberList()">Show Members</button>
+      <div id="memberListContainer" style="display: none;">
+        <input type="text" id="memberSearch" placeholder="Search Member by Name" />
+        <select id="balanceMemberId">
+          <option value="">Select Member</option>
+        </select>
+        <div id="balanceMemberError" class="error-message"></div>
+        <input type="number" id="oldBalanceAmount" placeholder="Old Balance Amount" />
+        <button id="updateBalanceButton">Update Balance</button>
+        <div id="memberList" class="member-list"></div>
+        <div id="memberListError" class="error-message"></div>
+      </div>
+    </div>
+
+    <!-- Edit Balance Section -->
+    <div id="editBalanceSection" style="display: none;">
+      <h3>Edit Old Balance</h3>
+      <input type="hidden" id="editBalanceMemberId" />
+      <input type="number" id="editBalanceAmount" placeholder="Old Balance Amount" />
+      <button id="saveEditBalanceButton">Save Changes</button>
+      <button id="cancelEditBalanceButton">Cancel</button>
+    </div>
+
+    <!-- Bank Section for Treasurer -->
+    <div id="bankSection">
+      <h3>Bank Details</h3>
+      <input type="text" id="bankName" placeholder="Bank Name" />
+      <input type="number" id="bankAmount" placeholder="Amount" />
+      <button id="addBankButton">Add Bank Entry</button>
+      <div id="bankList" class="bank-table-container">
+        <table class="bank-table">
+          <thead>
+            <tr>
+              <th onclick="sortBankTable(0)">Date</th>
+              <th>Bank Name</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bankTableBody"></tbody>
+        </table>
+      </div>
+      <div id="bankListError" class="error-message"></div>
+    </div>
+
+    <!-- Edit Bank Entry Section -->
+    <div id="editBankSection" style="display: none;">
+      <h3>Edit Bank Entry</h3>
+      <input type="hidden" id="editBankId" />
+      <input type="text" id="editBankName" placeholder="Bank Name" />
+      <input type="number" id="editBankAmount" placeholder="Amount" />
+      <button id="saveEditBankButton">Save Changes</button>
+      <button id="cancelEditBankButton">Cancel</button>
+    </div>
+
+    <!-- Expenses Section for Treasurer -->
+    <div id="expensesSection">
+      <h3>Expenses</h3>
+      <input type="text" id="expenseDescription" placeholder="Description" />
+      <input type="number" id="expenseAmount" placeholder="Amount" />
+      <select id="expensePaymentMode">
+        <option value="Cash">Cash</option>
+        <option value="Bank">Bank</option>
+      </select>
+      <select id="expenseBankId" style="display: none;">
+        <option value="">Select Bank</option>
+      </select>
+      <button id="addExpenseButton">Add Expense</button>
+      <div id="expenseList" class="expense-table-container">
+        <table class="expense-table">
+          <thead>
+            <tr>
+              <th onclick="sortExpenseTable(0)">Date</th>
+              <th>Particular</th>
+              <th>Amount</th>
+              <th>Mode of Payment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBodyFull"></tbody>
+        </table>
+      </div>
+      <div id="expenseListError" class="error-message"></div>
+    </div>
+
+    <!-- Edit Expense Section -->
+    <div id="editExpenseSection" style="display: none;">
+      <h3>Edit Expense</h3>
+      <input type="hidden" id="editExpenseId" />
+      <input type="text" id="editExpenseDescription" placeholder="Description" />
+      <input type="number" id="editExpenseAmount" placeholder="Amount" />
+      <select id="editExpensePaymentMode">
+        <option value="Cash">Cash</option>
+        <option value="Bank">Bank</option>
+      </select>
+      <select id="editExpenseBankId" style="display: none;">
+        <option value="">Select Bank</option>
+      </select>
+      <button id="saveEditExpenseButton">Save Changes</button>
+      <button id="cancelEditExpenseButton">Cancel</button>
+    </div>
+
+    <!-- Edit Receipt Section for Members -->
+    <div id="editReceiptSection" style="display: none;">
+      <h3>Edit Receipt</h3>
+      <input type="hidden" id="editReceiptId" />
+      <input type="number" id="editReceiptAmount" placeholder="Amount" />
+      <select id="editPaymentMode">
+        <option value="Cash">Cash</option>
+        <option value="Bank">Bank</option>
+      </select>
+      <select id="editReceiptBankId" style="display: none;">
+        <option value="">Select Bank</option>
+      </select>
+      <button id="saveEditReceiptButton">Save Changes</button>
+      <button id="cancelEditReceiptButton">Cancel</button>
+    </div>
+
+    <!-- Receipts Section for Members -->
+    <div id="memberReceipts">
+      <h3>Your Receipts</h3>
+      <div id="receiptList" class="receipt-table-container">
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th>Receipt No.</th>
+              <th>Date</th>
+              <th>Member Name</th>
+              <th>Mode of Payment</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="memberReceiptTableBody"></tbody>
+        </table>
+      </div>
+      <div id="receiptListError" class="error-message"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, where, query, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMWuYa4plIxdgj48r4q_NmEENZgvBx7VY",
+      authDomain: "pridewelfare-2b002.firebaseapp.com",
+      projectId: "pridewelfare-2b002",
+      storageBucket: "pridewelfare-2b002.firebasestorage.app",
+      messagingSenderId: "1070532082236",
+      appId: "1:1070532082236:web:26b3e2434b5a38102ba139",
+      measurementId: "G-54HPPE7MM4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUserRole = '';
+    let currentUserName = '';
+    let allMembers = [];
+    let receiptSortDirection = -1;
+    let bankSortDirection = -1;
+    let expenseSortDirection = -1;
+    let cashSortDirection = -1;
+
+    function formatDateToDDMMYYYY(timestamp) {
+      if (!timestamp) return "N/A";
+      const date = new Date(timestamp.toMillis());
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserData(user.uid);
+      } else {
+        document.getElementById("loginSection").style.display = "block";
+        document.getElementById("userInfo").style.display = "none";
+        document.getElementById("oldBalanceSection").style.display = "none";
+        document.getElementById("bankSection").style.display = "none";
+        document.getElementById("expensesSection").style.display = "none";
+        document.getElementById("receiptSection").style.display = "none";
+        document.getElementById("createdReceipts").style.display = "none";
+        document.getElementById("memberReceipts").style.display = "none";
+        document.getElementById("editReceiptSection").style.display = "none";
+        document.getElementById("editBalanceSection").style.display = "none";
+        document.getElementById("editBankSection").style.display = "none";
+        document.getElementById("editExpenseSection").style.display = "none";
+        document.getElementById("societyDashboard").style.display = "none";
+        document.getElementById("memberDashboard").style.display = "none";
+        document.getElementById("cashTransactionsSection").style.display = "none";
+      }
+    });
+
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const loginError = document.getElementById("loginError");
+
+      if (!email || !password) {
+        loginError.innerText = "Please enter both email and password!";
+        return;
+      }
+
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        loginError.innerText = "Please enter a valid email address!";
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          loginError.innerText = "";
+        })
+        .catch((error) => {
+          loginError.innerText = "Login failed: " + error.message;
+        });
+    }
+
+    async function fetchUserData(uid) {
+      try {
+        const docSnap = await getDoc(doc(db, "users", uid));
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          document.getElementById("userName").innerText = userData.name;
+          document.getElementById("userRole").innerText = userData.role;
+          currentUserRole = userData.role;
+          currentUserName = userData.name;
+
+          document.getElementById("loginSection").style.display = "none";
+          document.getElementById("userInfo").style.display = "block";
+          document.getElementById("societyDashboard").style.display = "block";
+          loadSocietyDashboard();
+
+          if (userData.role === "treasurer") {
+            document.getElementById("oldBalanceSection").style.display = "block";
+            document.getElementById("bankSection").style.display = "block";
+            document.getElementById("expensesSection").style.display = "block";
+            document.getElementById("receiptSection").style.display = "block";
+            document.getElementById("createdReceipts").style.display = "block";
+            document.getElementById("finalReceiptOption").style.display = "block";
+            loadMembers();
+            loadMemberBalances();
+            await checkAndAddDefaultBank();
+            loadBankDetails();
+            loadExpenses();
+            loadCreatedReceipts(uid);
+          } else if (userData.role === "caretaker") {
+            document.getElementById("receiptSection").style.display = "block";
+            document.getElementById("createdReceipts").style.display = "block";
+            document.getElementById("finalReceiptOption").style.display = "none";
+            loadMembers();
+            await checkAndAddDefaultBank();
+            loadCreatedReceipts(uid);
+          } else if (userData.role === "member") {
+            document.getElementById("memberReceipts").style.display = "block";
+            document.getElementById("memberDashboard").style.display = "block";
+            loadMemberReceipts(uid);
+            await loadMemberDashboard(uid);
+          }
+        } else {
+          alert("User data not found!");
+        }
+      } catch (error) {
+        alert("Error fetching user data: " + error.message);
+      }
+    }
+
+    async function checkAndAddDefaultBank() {
+      const bankQuery = query(collection(db, "bank"), where("bankName", "==", "Ujjivan Bank"));
+      const bankSnapshot = await getDocs(bankQuery);
+      if (bankSnapshot.empty) {
+        await addDoc(collection(db, "bank"), {
+          bankName: "Ujjivan Bank",
+          amount: 0,
+          createdBy: auth.currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+        console.log("Default bank 'Ujjivan Bank' added.");
+      }
+      loadBanksForDropdowns();
+    }
+
+    async function loadMemberDashboard(uid) {
+      try {
+        const memberDoc = await getDoc(doc(db, "users", uid));
+        if (!memberDoc.exists()) return;
+        const memberData = memberDoc.data();
+        let memberBalance = memberData.oldBalance || 0;
+
+        const receiptsSnapshot = await getDocs(query(collection(db, "receipts"), where("memberId", "==", uid)));
+        let totalReceiptsAmount = 0;
+        receiptsSnapshot.forEach((receiptDoc) => {
+          const receiptData = receiptDoc.data();
+          if (receiptData.status === "final") {
+            memberBalance -= receiptData.amount || 0;
+          }
+          totalReceiptsAmount += receiptData.amount || 0;
+        });
+
+        document.getElementById("memberBalance").innerText = memberBalance;
+        document.getElementById("totalMemberReceipts").innerText = totalReceiptsAmount;
+      } catch (error) {
+        document.getElementById("memberBalance").innerText = "Error";
+        document.getElementById("totalMemberReceipts").innerText = "Error";
+      }
+    }
+
+    async function loadSocietyDashboard() {
+      try {
+        let totalBankBalance = 0;
+        const bankSnapshot = await getDocs(collection(db, "bank"));
+        bankSnapshot.forEach((doc) => {
+          const bankData = doc.data();
+          totalBankBalance += bankData.amount || 0;
+        });
+        document.getElementById("totalBankBalance").innerText = totalBankBalance;
+
+        let cashInHand = 0;
+        const receiptsSnapshot = await getDocs(collection(db, "receipts"));
+        receiptsSnapshot.forEach((doc) => {
+          const receiptData = doc.data();
+          if (receiptData.paymentMode === "Cash" && receiptData.status === "final") {
+            cashInHand += receiptData.amount || 0;
+          }
+        });
+        const cashExpensesSnapshot = await getDocs(collection(db, "expenses"));
+        cashExpensesSnapshot.forEach((doc) => {
+          const expenseData = doc.data();
+          if (expenseData.paymentMode === "Cash") {
+            cashInHand -= expenseData.amount || 0;
+          }
+        });
+        document.getElementById("cashInHand").innerText = cashInHand;
+
+        const cashTableBody = document.getElementById("cashTableBody");
+        cashTableBody.innerHTML = "";
+        receiptsSnapshot.forEach((doc) => {
+          const receiptData = doc.data();
+          if (receiptData.paymentMode === "Cash" && receiptData.status === "final") {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${formatDateToDDMMYYYY(receiptData.createdAt)}</td>
+              <td>Receipt</td>
+              <td>${receiptData.amount}</td>
+              <td>
+                <button class="edit-button" onclick="editCash('${doc.id}', 'Receipt', ${receiptData.amount}, '${receiptData.paymentMode}', '${receiptData.bankId || ''}')">Edit</button>
+                <button class="delete-button" onclick="deleteCash('${doc.id}', 'Receipt')">Delete</button>
+              </td>
+            `;
+            cashTableBody.appendChild(row);
+          }
+        });
+        cashExpensesSnapshot.forEach((doc) => {
+          const expenseData = doc.data();
+          if (expenseData.paymentMode === "Cash") {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${formatDateToDDMMYYYY(expenseData.createdAt)}</td>
+              <td>Expense</td>
+              <td>${expenseData.amount}</td>
+              <td>
+                <button class="edit-button" onclick="editCash('${doc.id}', 'Expense', ${expenseData.amount}, '${expenseData.paymentMode}', '${expenseData.bankId || ''}')">Edit</button>
+                <button class="delete-button" onclick="deleteCash('${doc.id}', 'Expense')">Delete</button>
+              </td>
+            `;
+            cashTableBody.appendChild(row);
+          }
+        });
+
+        let totalExpenses = 0;
+        const expenseTableBody = document.getElementById("expenseTableBody");
+        expenseTableBody.innerHTML = "";
+        const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"));
+        const expenseDetailsSnapshot = await getDocs(expensesQuery);
+
+        expenseDetailsSnapshot.forEach((doc) => {
+          const expenseData = doc.data();
+          totalExpenses += expenseData.amount || 0;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDateToDDMMYYYY(expenseData.createdAt)}</td>
+            <td>${expenseData.description}</td>
+            <td>${expenseData.amount}</td>
+            <td>${expenseData.paymentMode || 'N/A'}</td>
+          `;
+          expenseTableBody.appendChild(row);
+        });
+        document.getElementById("totalExpenses").innerText = totalExpenses;
+      } catch (error) {
+        document.getElementById("totalBankBalance").innerText = "Error";
+        document.getElementById("cashInHand").innerText = "Error";
+        document.getElementById("totalExpenses").innerText = "Error";
+      }
+    }
+
+    window.toggleExpenseTable = function() {
+      const expenseTable = document.getElementById("expenseTable");
+      expenseTable.style.display = expenseTable.style.display === "none" || expenseTable.style.display === "" ? "table" : "none";
+    };
+
+    window.toggleCashTable = function() {
+      const cashSection = document.getElementById("cashTransactionsSection");
+      cashSection.style.display = cashSection.style.display === "none" || cashSection.style.display === "" ? "block" : "none";
+    };
+
+    window.sortCashTable = async function(columnIndex) {
+      cashSortDirection *= -1;
+      const direction = cashSortDirection === -1 ? "desc" : "asc";
+      loadSocietyDashboard(direction);
+    };
+
+    window.editCash = function(id, type, amount, paymentMode, bankId) {
+      if (type === "Receipt") {
+        editReceipt(id, amount, paymentMode, bankId);
+      } else if (type === "Expense") {
+        editExpense(id, amount, paymentMode, bankId);
+      }
+    };
+
+    window.deleteCash = function(id, type) {
+      if (type === "Receipt") {
+        deleteReceipt(id);
+      } else if (type === "Expense") {
+        deleteExpense(id);
+      }
+    };
+
+    window.toggleMemberList = function() {
+      const memberListContainer = document.getElementById("memberListContainer");
+      const toggleButton = document.querySelector("#oldBalanceSection button");
+      if (memberListContainer.style.display === "none" || memberListContainer.style.display === "") {
+        memberListContainer.style.display = "block";
+        toggleButton.textContent = "Hide Members";
+      } else {
+        memberListContainer.style.display = "none";
+        toggleButton.textContent = "Show Members";
+      }
+    };
+
+    async function loadMembers() {
+      const memberSelect = document.getElementById("receiptMemberId");
+      const balanceMemberSelect = document.getElementById("balanceMemberId");
+      const receiptMemberError = document.getElementById("receiptMemberError");
+      const balanceMemberError = document.getElementById("balanceMemberError");
+      memberSelect.innerHTML = '<option value="">Select Member</option>';
+      if (balanceMemberSelect) {
+        balanceMemberSelect.innerHTML = '<option value="">Select Member</option>';
+      }
+
+      try {
+        const q = query(collection(db, "users"), where("role", "==", "member"), orderBy("name", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          receiptMemberError.innerText = "No members found.";
+          if (balanceMemberError) balanceMemberError.innerText = "No members found.";
+          return;
+        }
+
+        allMembers = [];
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          const option = document.createElement("option");
+          option.value = doc.id;
+          option.text = userData.name || "Unnamed Member";
+          option.dataset.phone = userData.phone || '';
+          memberSelect.appendChild(option);
+
+          if (balanceMemberSelect) {
+            const balanceOption = document.createElement("option");
+            balanceOption.value = doc.id;
+            balanceOption.text = (userData.name || "Unnamed Member") + " (Balance: " + (userData.oldBalance || 0) + ")";
+            balanceMemberSelect.appendChild(balanceOption);
+          }
+
+          allMembers.push({
+            id: doc.id,
+            name: userData.name || "Unnamed Member",
+            oldBalance: userData.oldBalance || 0
+          });
+        });
+        receiptMemberError.innerText = "";
+        if (balanceMemberError) balanceMemberError.innerText = "";
+      } catch (error) {
+        receiptMemberError.innerText = "Error loading members: " + error.message;
+        if (balanceMemberError) balanceMemberError.innerText = "Error loading members: " + error.message;
+      }
+    }
+
+    async function loadMemberBalances() {
+      const memberList = document.getElementById("memberList");
+      const memberListError = document.getElementById("memberListError");
+      memberList.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "users"), where("role", "==", "member"), orderBy("name", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          memberList.innerHTML = "<p>No members found.</p>";
+          memberListError.innerText = "No members found.";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          const oldBalance = userData.oldBalance || 0;
+          const memberDiv = document.createElement("div");
+          memberDiv.className = "member";
+          memberDiv.dataset.name = (userData.name || "Unnamed Member").toLowerCase();
+          memberDiv.innerHTML = `
+            <p>Name: ${userData.name || "Unnamed Member"}</p>
+            <p>Old Balance: ${oldBalance}</p>
+            <button class="edit-button" onclick="editBalance('${doc.id}', ${oldBalance})">Edit</button>
+            <button class="delete-button" onclick="deleteMember('${doc.id}')">Delete</button>
+          `;
+          memberList.appendChild(memberDiv);
+        });
+        memberListError.innerText = "";
+
+        document.getElementById("memberSearch").addEventListener("input", function() {
+          const searchTerm = this.value.toLowerCase();
+          const members = document.querySelectorAll("#memberList .member");
+          members.forEach((member) => {
+            const memberName = member.dataset.name;
+            member.style.display = memberName.includes(searchTerm) ? "block" : "none";
+          });
+        });
+      } catch (error) {
+        memberListError.innerText = "Error loading member balances: " + error.message;
+      }
+    }
+
+    function updateOldBalance() {
+      const memberId = document.getElementById("balanceMemberId").value;
+      const oldBalance = document.getElementById("oldBalanceAmount").value;
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You need to be logged in to update balance!");
+        return;
+      }
+      if (!memberId || !oldBalance) {
+        alert("Please select a member and enter an amount!");
+        return;
+      }
+
+      setDoc(doc(db, "users", memberId), { oldBalance: parseFloat(oldBalance) }, { merge: true })
+        .then(() => {
+          alert("Old balance updated successfully!");
+          document.getElementById("balanceMemberId").value = "";
+          document.getElementById("oldBalanceAmount").value = "";
+          const balanceMemberSelect = document.getElementById("balanceMemberId");
+          balanceMemberSelect.innerHTML = '<option value="">Select Member</option>';
+          loadMembers();
+          loadMemberBalances();
+        })
+        .catch((error) => {
+          alert("Error updating old balance: " + error.message);
+        });
+    }
+
+    window.editBalance = function(memberId, oldBalance) {
+      document.getElementById("editBalanceMemberId").value = memberId;
+      document.getElementById("editBalanceAmount").value = oldBalance;
+      document.getElementById("editBalanceSection").style.display = "block";
+      document.getElementById("oldBalanceSection").style.display = "none";
+    };
+
+    function saveEditedBalance() {
+      const memberId = document.getElementById("editBalanceMemberId").value;
+      const oldBalance = document.getElementById("editBalanceAmount").value;
+
+      if (!oldBalance) {
+        alert("Please enter an amount!");
+        return;
+      }
+
+      setDoc(doc(db, "users", memberId), { oldBalance: parseFloat(oldBalance) }, { merge: true })
+        .then(() => {
+          alert("Old balance updated successfully!");
+          document.getElementById("editBalanceSection").style.display = "none";
+          document.getElementById("oldBalanceSection").style.display = "block";
+          loadMemberBalances();
+          const balanceMemberSelect = document.getElementById("balanceMemberId");
+          balanceMemberSelect.innerHTML = '<option value="">Select Member</option>';
+          loadMembers();
+        })
+        .catch((error) => {
+          alert("Error updating old balance: " + error.message);
+        });
+    }
+
+    function cancelEditBalance() {
+      document.getElementById("editBalanceSection").style.display = "none";
+      document.getElementById("oldBalanceSection").style.display = "block";
+    }
+
+    window.deleteMember = async function(memberId) {
+      if (confirm("Are you sure you want to delete this member? All associated receipts will also be deleted.")) {
+        try {
+          const receiptsQuery = query(collection(db, "receipts"), where("memberId", "==", memberId));
+          const receiptsSnapshot = await getDocs(receiptsQuery);
+          const batch = [];
+          receiptsSnapshot.forEach((doc) => {
+            batch.push(deleteDoc(doc.ref));
+          });
+          await Promise.all(batch);
+
+          await deleteDoc(doc(db, "users", memberId));
+          alert("Member and associated receipts deleted successfully!");
+          loadMemberBalances();
+          const balanceMemberSelect = document.getElementById("balanceMemberId");
+          balanceMemberSelect.innerHTML = '<option value="">Select Member</option>';
+          loadMembers();
+          loadSocietyDashboard();
+        } catch (error) {
+          alert("Error deleting member: " + error.message);
+        }
+      }
+    };
+
+    async function loadBanksForDropdowns() {
+      const receiptBankSelect = document.getElementById("receiptBankId");
+      const expenseBankSelect = document.getElementById("expenseBankId");
+      const editReceiptBankSelect = document.getElementById("editReceiptBankId");
+      const editExpenseBankSelect = document.getElementById("editExpenseBankId");
+
+      receiptBankSelect.innerHTML = '<option value="">Select Bank</option>';
+      expenseBankSelect.innerHTML = '<option value="">Select Bank</option>';
+      editReceiptBankSelect.innerHTML = '<option value="">Select Bank</option>';
+      editExpenseBankSelect.innerHTML = '<option value="">Select Bank</option>';
+
+      try {
+        const querySnapshot = await getDocs(collection(db, "bank"));
+        if (querySnapshot.empty) {
+          console.log("No banks found in the database.");
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const bankData = doc.data();
+          console.log("Loading bank:", bankData.bankName, "with amount:", bankData.amount);
+          const option1 = document.createElement("option");
+          const option2 = document.createElement("option");
+          const option3 = document.createElement("option");
+          const option4 = document.createElement("option");
+          option1.value = doc.id;
+          option1.text = `${bankData.bankName} (Balance: ${bankData.amount || 0})`;
+          option2.value = doc.id;
+          option2.text = `${bankData.bankName} (Balance: ${bankData.amount || 0})`;
+          option3.value = doc.id;
+          option3.text = `${bankData.bankName} (Balance: ${bankData.amount || 0})`;
+          option4.value = doc.id;
+          option4.text = `${bankData.bankName} (Balance: ${bankData.amount || 0})`;
+          receiptBankSelect.appendChild(option1);
+          expenseBankSelect.appendChild(option2);
+          editReceiptBankSelect.appendChild(option3);
+          editExpenseBankSelect.appendChild(option4);
+        });
+      } catch (error) {
+        console.error("Error loading banks for dropdowns:", error);
+      }
+    }
+
+    function addBankEntry() {
+      const bankName = document.getElementById("bankName").value;
+      const amount = document.getElementById("bankAmount").value;
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You need to be logged in to add a bank entry!");
+        return;
+      }
+      if (!bankName || !amount) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      addDoc(collection(db, "bank"), {
+        bankName: bankName,
+        amount: parseFloat(amount),
+        createdBy: user.uid,
+        createdAt: serverTimestamp()
+      })
+      .then(() => {
+        alert("Bank entry added successfully!");
+        document.getElementById("bankName").value = "";
+        document.getElementById("bankAmount").value = "";
+        loadBankDetails();
+        loadBanksForDropdowns();
+      })
+      .catch((error) => {
+        alert("Error adding bank entry: " + error.message);
+      });
+    }
+
+    window.sortBankTable = async function(columnIndex) {
+      bankSortDirection *= -1;
+      const direction = bankSortDirection === -1 ? "desc" : "asc";
+      loadBankDetails(direction);
+    };
+
+    async function loadBankDetails(sortOrder = "desc") {
+      const bankTableBody = document.getElementById("bankTableBody");
+      const bankListError = document.getElementById("bankListError");
+      bankTableBody.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "bank"), orderBy("createdAt", sortOrder));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          bankTableBody.innerHTML = "<tr><td colspan='4'>No bank entries found.</td></tr>";
+          bankListError.innerText = "No bank entries found.";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const bankData = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDateToDDMMYYYY(bankData.createdAt)}</td>
+            <td>${bankData.bankName}</td>
+            <td>${bankData.amount}</td>
+            <td>
+              <button class="edit-button" onclick="editBank('${doc.id}', '${bankData.bankName}', ${bankData.amount})">Edit</button>
+              <button class="delete-button" onclick="deleteBank('${doc.id}')">Delete</button>
+            </td>
+          `;
+          bankTableBody.appendChild(row);
+        });
+        bankListError.innerText = "";
+        loadBanksForDropdowns();
+      } catch (error) {
+        bankListError.innerText = "Error loading bank details: " + error.message;
+      }
+    }
+
+    window.editBank = function(bankId, bankName, amount) {
+      document.getElementById("editBankId").value = bankId;
+      document.getElementById("editBankName").value = bankName;
+      document.getElementById("editBankAmount").value = amount;
+      document.getElementById("editBankSection").style.display = "block";
+      document.getElementById("bankSection").style.display = "none";
+    };
+
+    function saveEditedBank() {
+      const bankId = document.getElementById("editBankId").value;
+      const bankName = document.getElementById("editBankName").value;
+      const amount = document.getElementById("editBankAmount").value;
+
+      if (!bankName || !amount) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      updateDoc(doc(db, "bank", bankId), {
+        bankName: bankName,
+        amount: parseFloat(amount)
+      })
+      .then(() => {
+        alert("Bank entry updated successfully!");
+        document.getElementById("editBankSection").style.display = "none";
+        document.getElementById("bankSection").style.display = "block";
+        loadBankDetails();
+      })
+      .catch((error) => {
+        alert("Error updating bank entry: " + error.message);
+      });
+    }
+
+    function cancelEditBank() {
+      document.getElementById("editBankSection").style.display = "none";
+      document.getElementById("bankSection").style.display = "block";
+    }
+
+    window.deleteBank = function(bankId) {
+      if (confirm("Are you sure you want to delete this bank entry?")) {
+        deleteDoc(doc(db, "bank", bankId))
+          .then(() => {
+            alert("Bank entry deleted successfully!");
+            loadBankDetails();
+          })
+          .catch((error) => {
+            alert("Error deleting bank entry: " + error.message);
+          });
+      }
+    };
+
+    async function addExpense() {
+      const description = document.getElementById("expenseDescription").value;
+      const amount = parseFloat(document.getElementById("expenseAmount").value);
+      const paymentMode = document.getElementById("expensePaymentMode").value;
+      const bankId = document.getElementById("expenseBankId").value;
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You need to be logged in to add an expense!");
+        return;
+      }
+      if (!description || !amount) {
+        alert("Please fill in all fields!");
+        return;
+      }
+      if (paymentMode === "Bank" && !bankId) {
+        alert("Please select a bank for the payment!");
+        return;
+      }
+
+      if (paymentMode === "Bank") {
+        const bankRef = doc(db, "bank", bankId);
+        const bankSnap = await getDoc(bankRef);
+        if (bankSnap.exists()) {
+          const bankData = bankSnap.data();
+          const newBankBalance = (bankData.amount || 0) - amount;
+          if (newBankBalance < 0) {
+            alert("Insufficient funds in the selected bank account!");
+            return;
+          }
+          await updateDoc(bankRef, { amount: newBankBalance });
+        }
+      }
+
+      await addDoc(collection(db, "expenses"), {
+        description: description,
+        amount: amount,
+        paymentMode: paymentMode,
+        bankId: paymentMode === "Bank" ? bankId : null,
+        createdBy: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      alert("Expense added successfully!");
+      document.getElementById("expenseDescription").value = "";
+      document.getElementById("expenseAmount").value = "";
+      document.getElementById("expensePaymentMode").value = "Cash";
+      document.getElementById("expenseBankId").value = "";
+      document.getElementById("expenseBankId").style.display = "none";
+      loadExpenses();
+      loadSocietyDashboard();
+      sendExpenseMessageToMembers(description, amount, paymentMode);
+    }
+
+    function sendExpenseMessageToMembers(description, amount, paymentMode) {
+      const q = query(collection(db, "users"), where("role", "==", "member"), orderBy("name", "asc"));
+      getDocs(q)
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            const phone = userData.phone;
+            if (phone) {
+              const message = `New expense added: ${description}, Amount: ${amount}, Payment Mode: ${paymentMode}.`;
+              const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+              window.open(whatsappUrl, '_blank');
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching members for expense message: ", error);
+        });
+    }
+
+    window.sortExpenseTable = async function(columnIndex) {
+      expenseSortDirection *= -1;
+      const direction = expenseSortDirection === -1 ? "desc" : "asc";
+      loadExpenses(direction);
+      loadSocietyDashboard();
+    };
+
+    async function loadExpenses(sortOrder = "desc") {
+      const expenseTableBody = document.getElementById("expenseTableBodyFull");
+      const expenseListError = document.getElementById("expenseListError");
+      expenseTableBody.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "expenses"), orderBy("createdAt", sortOrder));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          expenseTableBody.innerHTML = "<tr><td colspan='5'>No expenses found.</td></tr>";
+          expenseListError.innerText = "No expenses found.";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const expenseData = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDateToDDMMYYYY(expenseData.createdAt)}</td>
+            <td>${expenseData.description}</td>
+            <td>${expenseData.amount}</td>
+            <td>${expenseData.paymentMode || 'N/A'}</td>
+            <td>
+              <button class="edit-button" onclick="editExpense('${doc.id}', '${expenseData.description}', ${expenseData.amount}, '${expenseData.paymentMode}', '${expenseData.bankId || ''}')">Edit</button>
+              <button class="delete-button" onclick="deleteExpense('${doc.id}')">Delete</button>
+            </td>
+          `;
+          expenseTableBody.appendChild(row);
+        });
+        expenseListError.innerText = "";
+      } catch (error) {
+        expenseListError.innerText = "Error loading expenses: " + error.message;
+      }
+    }
+
+    window.editExpense = function(expenseId, description, amount, paymentMode, bankId) {
+      document.getElementById("editExpenseId").value = expenseId;
+      document.getElementById("editExpenseDescription").value = description || '';
+      document.getElementById("editExpenseAmount").value = amount;
+      document.getElementById("editExpensePaymentMode").value = paymentMode;
+      document.getElementById("editExpenseBankId").value = bankId || '';
+      document.getElementById("editExpenseBankId").style.display = paymentMode === "Bank" ? "block" : "none";
+      document.getElementById("editExpenseSection").style.display = "block";
+      document.getElementById("expensesSection").style.display = "none";
+    };
+
+    async function saveEditedExpense() {
+      const expenseId = document.getElementById("editExpenseId").value;
+      const description = document.getElementById("editExpenseDescription").value;
+      const amount = parseFloat(document.getElementById("editExpenseAmount").value);
+      const paymentMode = document.getElementById("editExpensePaymentMode").value;
+      const bankId = document.getElementById("editExpenseBankId").value;
+
+      if (!description || !amount) {
+        alert("Please fill in all fields!");
+        return;
+      }
+      if (paymentMode === "Bank" && !bankId) {
+        alert("Please select a bank for the payment!");
+        return;
+      }
+
+      if (paymentMode === "Bank") {
+        const bankRef = doc(db, "bank", bankId);
+        const bankSnap = await getDoc(bankRef);
+        if (bankSnap.exists()) {
+          const bankData = bankSnap.data();
+          const newBankBalance = (bankData.amount || 0) - amount;
+          if (newBankBalance < 0) {
+            alert("Insufficient funds in the selected bank account!");
+            return;
+          }
+          await updateDoc(bankRef, { amount: newBankBalance });
+        }
+      }
+
+      await updateDoc(doc(db, "expenses", expenseId), {
+        description: description,
+        amount: amount,
+        paymentMode: paymentMode,
+        bankId: paymentMode === "Bank" ? bankId : null
+      });
+
+      alert("Expense updated successfully!");
+      document.getElementById("editExpenseSection").style.display = "none";
+      document.getElementById("expensesSection").style.display = "block";
+      loadExpenses();
+      loadSocietyDashboard();
+    }
+
+    function cancelEditExpense() {
+      document.getElementById("editExpenseSection").style.display = "none";
+      document.getElementById("expensesSection").style.display = "block";
+    }
+
+    window.deleteExpense = function(expenseId) {
+      if (confirm("Are you sure you want to delete this expense?")) {
+        deleteDoc(doc(db, "expenses", expenseId))
+          .then(() => {
+            alert("Expense deleted successfully!");
+            loadExpenses();
+            loadSocietyDashboard();
+          })
+          .catch((error) => {
+            alert("Error deleting expense: " + error.message);
+          });
+      }
+    };
+
+    async function createReceipt() {
+      const memberId = document.getElementById("receiptMemberId").value;
+      const amount = parseFloat(document.getElementById("receiptAmount").value);
+      const status = document.getElementById("receiptStatus").value;
+      const paymentMode = document.getElementById("paymentMode").value;
+      const bankId = document.getElementById("receiptBankId").value;
+      const receiptNumberInput = document.getElementById("receiptNumber").value;
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("You need to be logged in to create a receipt!");
+        return;
+      }
+      if (!memberId || !amount) {
+        alert("Please fill in all fields!");
+        return;
+      }
+      if (status === "final" && !receiptNumberInput) {
+        alert("Please enter a receipt number for Final receipt!");
+        return;
+      }
+      if (paymentMode === "Bank" && !bankId) {
+        alert("Please select a bank for the payment!");
+        return;
+      }
+
+      let receiptNumber = receiptNumberInput;
+      if (status === "temporary") {
+        const counterRef = doc(db, "counters", "receiptCounter");
+        const counterSnap = await getDoc(counterRef);
+        let currentCount = 0;
+        if (counterSnap.exists()) {
+          currentCount = counterSnap.data().temporaryReceiptCount || 0;
+        }
+        currentCount++;
+        receiptNumber = `TEMP-${currentCount}`;
+        await setDoc(counterRef, { temporaryReceiptCount: currentCount }, { merge: true });
+      }
+
+      const memberSelect = document.getElementById("receiptMemberId");
+      const selectedOption = memberSelect.options[memberSelect.selectedIndex];
+      const memberName = selectedOption.text;
+      const memberPhone = selectedOption.dataset.phone;
+
+      if (status === "final") {
+        const memberRef = doc(db, "users", memberId);
+        const memberSnap = await getDoc(memberRef);
+        if (memberSnap.exists()) {
+          const memberData = memberSnap.data();
+          const currentBalance = memberData.oldBalance || 0;
+          const newBalance = currentBalance - amount;
+          await updateDoc(memberRef, { oldBalance: newBalance });
+        }
+
+        if (paymentMode === "Bank") {
+          const bankRef = doc(db, "bank", bankId);
+          const bankSnap = await getDoc(bankRef);
+          if (bankSnap.exists()) {
+            const bankData = bankSnap.data();
+            const newBankBalance = (bankData.amount || 0) + amount;
+            await updateDoc(bankRef, { amount: newBankBalance });
+          }
+        }
+      }
+
+      await addDoc(collection(db, "receipts"), {
+        memberId: memberId,
+        memberName: memberName,
+        amount: amount,
+        createdBy: user.uid,
+        createdByName: currentUserName,
+        createdAt: serverTimestamp(),
+        status: status,
+        receiptNumber: receiptNumber,
+        paymentMode: paymentMode,
+        bankId: paymentMode === "Bank" ? bankId : null
+      });
+
+      alert("Receipt created successfully!");
+      document.getElementById("receiptMemberId").value = "";
+      document.getElementById("receiptAmount").value = "";
+      document.getElementById("receiptStatus").value = "temporary";
+      document.getElementById("receiptNumber").value = "";
+      document.getElementById("paymentMode").value = "Cash";
+      document.getElementById("receiptBankId").value = "";
+      document.getElementById("receiptBankId").style.display = "none";
+      loadCreatedReceipts(user.uid);
+      loadMemberBalances();
+      loadSocietyDashboard();
+      if (currentUserRole === "member") {
+        loadMemberDashboard(user.uid);
+      }
+
+      if (currentUserRole === "caretaker") {
+        const treasurerQuery = query(collection(db, "users"), where("role", "==", "treasurer"));
+        getDocs(treasurerQuery).then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const treasurerData = doc.data();
+            const treasurerPhone = treasurerData.phone;
+            if (treasurerPhone) {
+              const message = `Caretaker ${currentUserName} has generated a temporary receipt for ${memberName}, Amount: ${amount}, Receipt No: ${receiptNumber}.`;
+              const whatsappUrl = `https://wa.me/${treasurerPhone}?text=${encodeURIComponent(message)}`;
+              window.open(whatsappUrl, '_blank');
+            }
+          });
+        });
+
+        if (memberPhone) {
+          const message = `You have a new temporary receipt from Caretaker ${currentUserName}. Amount: ${amount}, Receipt No: ${receiptNumber}.`;
+          const whatsappUrl = `https://wa.me/${memberPhone}?text=${encodeURIComponent(message)}`;
+          window.open(whatsappUrl, '_blank');
+        }
+      } else if (currentUserRole === "treasurer") {
+        if (memberPhone) {
+          const message = `You have a new ${status} receipt from Treasurer. Amount: ${amount}, Receipt No: ${receiptNumber}.`;
+          const whatsappUrl = `https://wa.me/${memberPhone}?text=${encodeURIComponent(message)}`;
+          window.open(whatsappUrl, '_blank');
+        }
+      }
+    }
+
+    window.sortReceiptTable = async function(columnIndex) {
+      receiptSortDirection *= -1;
+      const direction = receiptSortDirection === -1 ? "desc" : "asc";
+      const user = auth.currentUser;
+      if (user) {
+        loadCreatedReceipts(user.uid, direction);
+      }
+    };
+
+    async function loadCreatedReceipts(uid, sortOrder = "desc") {
+      const createdReceiptTableBody = document.getElementById("createdReceiptTableBody");
+      const createdReceiptListError = document.getElementById("createdReceiptListError");
+      createdReceiptTableBody.innerHTML = "";
+
+      try {
+        const q = query(
+          collection(db, "receipts"),
+          where("createdBy", "==", uid),
+          orderBy("createdAt", sortOrder)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          createdReceiptTableBody.innerHTML = "<tr><td colspan='6'>No receipts created.</td></tr>";
+          createdReceiptListError.innerText = "No receipts created.";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const receipt = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDateToDDMMYYYY(receipt.createdAt)}</td>
+            <td>${receipt.receiptNumber}</td>
+            <td>${receipt.memberName}</td>
+            <td>${receipt.paymentMode}</td>
+            <td>${receipt.amount}</td>
+            <td>
+              <button class="edit-button" onclick="editReceipt('${doc.id}', ${receipt.amount}, '${receipt.paymentMode}', '${receipt.bankId || ''}')">Edit</button>
+              <button class="delete-button" onclick="deleteReceipt('${doc.id}')">Delete</button>
+            </td>
+          `;
+          createdReceiptTableBody.appendChild(row);
+        });
+        createdReceiptListError.innerText = "";
+      } catch (error) {
+        createdReceiptListError.innerText = "Error loading created receipts: " + error.message;
+      }
+    }
+
+    async function loadMemberReceipts(uid) {
+      const memberReceiptTableBody = document.getElementById("memberReceiptTableBody");
+      const receiptListError = document.getElementById("receiptListError");
+      memberReceiptTableBody.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "receipts"), where("memberId", "==", uid), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          memberReceiptTableBody.innerHTML = "<tr><td colspan='6'>No receipts found.</td></tr>";
+          receiptListError.innerText = "No receipts found.";
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const receipt = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${receipt.receiptNumber}</td>
+            <td>${formatDateToDDMMYYYY(receipt.createdAt)}</td>
+            <td>${receipt.memberName}</td>
+            <td>${receipt.paymentMode}</td>
+            <td>${receipt.amount}</td>
+            <td>
+              <button class="edit-button" onclick="editReceipt('${doc.id}', ${receipt.amount}, '${receipt.paymentMode}', '${receipt.bankId || ''}')">Edit</button>
+              <button class="delete-button" onclick="deleteReceipt('${doc.id}')">Delete</button>
+            </td>
+          `;
+          memberReceiptTableBody.appendChild(row);
+        });
+        receiptListError.innerText = "";
+      } catch (error) {
+        receiptListError.innerText = "Error loading receipts: " + error.message;
+      }
+    }
+
+    window.editReceipt = function(receiptId, amount, paymentMode, bankId) {
+      document.getElementById("editReceiptId").value = receiptId;
+      document.getElementById("editReceiptAmount").value = amount;
+      document.getElementById("editPaymentMode").value = paymentMode;
+      document.getElementById("editReceiptBankId").value = bankId || '';
+      document.getElementById("editReceiptBankId").style.display = paymentMode === "Bank" ? "block" : "none";
+      document.getElementById("editReceiptSection").style.display = "block";
+      document.getElementById("createdReceipts").style.display = "none";
+      document.getElementById("memberReceipts").style.display = "none";
+    };
+
+    async function saveEditedReceipt() {
+      const receiptId = document.getElementById("editReceiptId").value;
+      const amount = parseFloat(document.getElementById("editReceiptAmount").value);
+      const paymentMode = document.getElementById("editPaymentMode").value;
+      const bankId = document.getElementById("editReceiptBankId").value;
+
+      if (!amount) {
+        alert("Please enter an amount!");
+        return;
+      }
+      if (paymentMode === "Bank" && !bankId) {
+        alert("Please select a bank for the payment!");
+        return;
+      }
+
+      if (paymentMode === "Bank") {
+        const bankRef = doc(db, "bank", bankId);
+        const bankSnap = await getDoc(bankRef);
+        if (bankSnap.exists()) {
+          const bankData = bankSnap.data();
+          const newBankBalance = (bankData.amount || 0) + amount;
+          await updateDoc(bankRef, { amount: newBankBalance });
+        }
+      }
+
+      await updateDoc(doc(db, "receipts", receiptId), {
+        amount: amount,
+        paymentMode: paymentMode,
+        bankId: paymentMode === "Bank" ? bankId : null
+      });
+
+      alert("Receipt updated successfully!");
+      document.getElementById("editReceiptSection").style.display = "none";
+      document.getElementById("createdReceipts").style.display = "block";
+      document.getElementById("memberReceipts").style.display = "block";
+      const user = auth.currentUser;
+      if (user) {
+        loadCreatedReceipts(user.uid);
+        loadMemberReceipts(user.uid);
+        loadSocietyDashboard();
+      }
+    }
+
+    function cancelEditReceipt() {
+      document.getElementById("editReceiptSection").style.display = "none";
+      document.getElementById("createdReceipts").style.display = "block";
+      document.getElementById("memberReceipts").style.display = "block";
+    }
+
+    window.deleteReceipt = function(receiptId) {
+      if (confirm("Are you sure you want to delete this receipt?")) {
+        deleteDoc(doc(db, "receipts", receiptId))
+          .then(() => {
+            alert("Receipt deleted successfully!");
+            const user = auth.currentUser;
+            if (user) {
+              loadCreatedReceipts(user.uid);
+              loadMemberReceipts(user.uid);
+              loadSocietyDashboard();
+            }
+          })
+          .catch((error) => {
+            alert("Error deleting receipt: " + error.message);
+          });
+      }
+    };
+
+    function logout() {
+      signOut(auth)
+        .then(() => {
+          document.getElementById("loginSection").style.display = "block";
+          document.getElementById("userInfo").style.display = "none";
+          document.getElementById("oldBalanceSection").style.display = "none";
+          document.getElementById("bankSection").style.display = "none";
+          document.getElementById("expensesSection").style.display = "none";
+          document.getElementById("receiptSection").style.display = "none";
+          document.getElementById("createdReceipts").style.display = "none";
+          document.getElementById("memberReceipts").style.display = "none";
+          document.getElementById("editReceiptSection").style.display = "none";
+          document.getElementById("editBalanceSection").style.display = "none";
+          document.getElementById("editBankSection").style.display = "none";
+          document.getElementById("editExpenseSection").style.display = "none";
+          document.getElementById("societyDashboard").style.display = "none";
+          document.getElementById("memberDashboard").style.display = "none";
+          document.getElementById("cashTransactionsSection").style.display = "none";
+        })
+        .catch((error) => {
+          alert("Logout failed: " + error.message);
+        });
+    }
+
+    document.getElementById("receiptStatus").addEventListener("change", function() {
+      const status = this.value;
+      const receiptNumberInput = document.getElementById("receiptNumber");
+      if (status === "final") {
+        receiptNumberInput.style.display = "block";
+      } else {
+        receiptNumberInput.style.display = "none";
+        receiptNumberInput.value = "";
+      }
+    });
+
+    document.getElementById("paymentMode").addEventListener("change", function() {
+      const paymentMode = this.value;
+      const bankSelect = document.getElementById("receiptBankId");
+      bankSelect.style.display = paymentMode === "Bank" ? "block" : "none";
+      bankSelect.value = "";
+    });
+
+    document.getElementById("expensePaymentMode").addEventListener("change", function() {
+      const paymentMode = this.value;
+      const bankSelect = document.getElementById("expenseBankId");
+      bankSelect.style.display = paymentMode === "Bank" ? "block" : "none";
+      bankSelect.value = "";
+    });
+
+    document.getElementById("editPaymentMode").addEventListener("change", function() {
+      const paymentMode = this.value;
+      const bankSelect = document.getElementById("editReceiptBankId");
+      bankSelect.style.display = paymentMode === "Bank" ? "block" : "none";
+      bankSelect.value = "";
+    });
+
+    document.getElementById("editExpensePaymentMode").addEventListener("change", function() {
+      const paymentMode = this.value;
+      const bankSelect = document.getElementById("editExpenseBankId");
+      bankSelect.style.display = paymentMode === "Bank" ? "block" : "none";
+      bankSelect.value = "";
+    });
+
+    document.getElementById("loginButton").addEventListener("click", login);
+    document.getElementById("logoutButton").addEventListener("click", logout);
+    document.getElementById("updateBalanceButton").addEventListener("click", updateOldBalance);
+    document.getElementById("addBankButton").addEventListener("click", addBankEntry);
+    document.getElementById("addExpenseButton").addEventListener("click", addExpense);
+    document.getElementById("createReceiptButton").addEventListener("click", createReceipt);
+    document.getElementById("saveEditBalanceButton").addEventListener("click", saveEditedBalance);
+    document.getElementById("cancelEditBalanceButton").addEventListener("click", cancelEditBalance);
+    document.getElementById("saveEditBankButton").addEventListener("click", saveEditedBank);
+    document.getElementById("cancelEditBankButton").addEventListener("click", cancelEditBank);
+    document.getElementById("saveEditExpenseButton").addEventListener("click", saveEditedExpense);
+    document.getElementById("cancelEditExpenseButton").addEventListener("click", cancelEditExpense);
+    document.getElementById("saveEditReceiptButton").addEventListener("click", saveEditedReceipt);
+    document.getElementById("cancelEditReceiptButton").addEventListener("click", cancelEditReceipt);
+  </script>
+</body>
+</html>
